@@ -11,21 +11,29 @@ class AsciiController @Inject()(cc: ControllerComponents, asciiService: AsciiSer
 
   private val log = Logger(getClass)
 
-  def registerImage(): Action[Image] = Action.async(parse.json[Image]) { request =>
-    val image = request.body
+  def registerImage(): Action[ImageDTO] = Action.async(parse.json[ImageDTO]) { request =>
+    val imageDto = request.body
 
     Future.successful {
-      asciiService.createImage(image) match {
+      asciiService.createImage(imageDto) match {
         case Right(_) => Created("")
-        case Left(_)  => InternalServerError("An unexpected error occurred")
+        case Left(_)  => InternalServerError("An unexpected error occurred while creating an image")
       }
     }
 
   }
 
-  def uploadChunk(sha256: String) = Action.async { request =>
+  def uploadChunk(sha256: String) = Action.async(parse.json[ChunkDTO]) { request =>
+    val chunkDto = request.body
+
+    // TODO: validate chunk size
+    // TODO: validate if image size too big
+
     Future.successful {
-      Ok("")
+      asciiService.createChunk(sha256, chunkDto) match {
+        case Right(_) => Created("")
+        case Left(_)  => InternalServerError("An unexpected error occurred while creating a chunk")
+      }
     }
   }
 

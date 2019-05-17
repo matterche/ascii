@@ -5,3 +5,5 @@ sealed trait ServiceError {
 }
 
 case class ConflictError(message: String) extends ServiceError
+
+case class EntityNotFoundError(message: String) extends ServiceError
