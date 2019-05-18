@@ -11,7 +11,7 @@ class AsciiService @Inject()(imageRepository: ImageRepository) {
     Right(imageRepository.createImage(image))
   }
 
-  def createChunk(sha256: String, chunkDto: ChunkDTO): Either[ServiceError, Unit] = {
+  def uploadChunk(sha256: String, chunkDto: ChunkDTO): Either[ServiceError, Unit] = {
     val chunk = Chunk.from(chunkDto)
 
     imageRepository

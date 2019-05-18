@@ -44,7 +44,7 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
 //      status(result) mustBe CONFLICT
     }
 
-    "register a new image chunk" in new TestScope {
+    "upload a new image chunk" in new TestScope {
       imageRepository.createImage(image)
 
       val result = route(

@@ -30,7 +30,7 @@ class AsciiController @Inject()(cc: ControllerComponents, asciiService: AsciiSer
     // TODO: validate if image size too big
 
     Future.successful {
-      asciiService.createChunk(sha256, chunkDto) match {
+      asciiService.uploadChunk(sha256, chunkDto) match {
         case Right(_) => Created("")
         case Left(_)  => InternalServerError("An unexpected error occurred while creating a chunk")
       }
