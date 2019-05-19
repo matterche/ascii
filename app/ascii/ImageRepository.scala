@@ -2,7 +2,7 @@ package ascii
 
 import javax.inject.Singleton
 
-import scala.collection.mutable
+import scala.collection.JavaConverters._
 
 trait ImageRepository {
 
@@ -20,7 +20,7 @@ trait ImageRepository {
 @Singleton
 class InMemoryImageRepository extends ImageRepository {
 
-  private val imageRepository = new mutable.HashMap[String, Image]
+  private val imageRepository = new java.util.concurrent.ConcurrentHashMap[String, Image]().asScala
 
   override def createImage(image: Image): Unit = imageRepository(image.sha256) = image
 
