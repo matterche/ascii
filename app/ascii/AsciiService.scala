@@ -16,14 +16,18 @@ class AsciiService @Inject()(imageRepository: ImageRepository) {
   }
 
   def uploadChunk(sha256: String, chunkDto: ChunkDTO): Either[ServiceError, Unit] = {
-    val chunk = Chunk.from(chunkDto)
 
     imageRepository
       .findImage(sha256)
       .map { image =>
-        val updatedImage = image.insertChunk(chunk)
-        imageRepository.updateImage(updatedImage)
-        Right(())
+        image.findChunk(chunkDto.id) match {
+          case Some(chunk) => Left(ConflictError(s"Chunk ${chunk.id} already exists for image ${image.sha256}"))
+          case None =>
+            val chunk        = Chunk.from(chunkDto)
+            val updatedImage = image.insertChunk(chunk)
+            imageRepository.updateImage(updatedImage)
+            Right(())
+        }
       }
       .getOrElse(Left(EntityNotFoundError(s"Could not find image $sha256")))
   }

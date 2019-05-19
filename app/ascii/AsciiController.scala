@@ -34,6 +34,7 @@ class AsciiController @Inject()(cc: ControllerComponents, asciiService: AsciiSer
     Future.successful {
       asciiService.uploadChunk(sha256, chunkDto) match {
         case Right(_) => Created("")
+        case Left(error: ConflictError) => Conflict(error.message)
         case Left(_)  => InternalServerError("An unexpected error occurred while creating a chunk")
       }
     }

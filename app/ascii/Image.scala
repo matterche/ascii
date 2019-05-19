@@ -13,6 +13,7 @@ case class Image(sha256: String, size: Int, chunkSize: Int) {
     this
   }
 
+  def findChunk(id: Int): Option[Chunk] = chunks.find(chunk => chunk.id == id)
 }
 
 object Image {

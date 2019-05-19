@@ -91,6 +91,17 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
         image.chunks mustBe Seq(chunk0, chunk1)
       }
 
+      "return 409 if chunk already exists" in new TestScope {
+        imageRepository.createImage(image)
+        image.insertChunk(chunk0)
+
+        status(uploadChunk(image, chunk0Json)) mustBe CONFLICT
+      }
+
+      "return 404 if image does not exist" in new TestScope {
+        pending
+      }
+
       "return 400 for malformed request" in new TestScope {
         val malformedPayload = Json.parse("""{"not":"valid"}""")
         status(uploadChunk(image, malformedPayload)) mustBe BAD_REQUEST
@@ -122,6 +133,10 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
 
         contentType(result) mustBe Some(TEXT)
         contentAsString(result) mustBe chunk0.data + chunk1.data
+      }
+
+      "return 404 if image does not exist" in new TestScope {
+        pending
       }
     }
 
