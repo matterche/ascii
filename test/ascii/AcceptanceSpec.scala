@@ -99,7 +99,7 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
       }
 
       "return 404 if image does not exist" in new TestScope {
-        pending
+        status(uploadChunk(image, chunk0Json)) mustBe NOT_FOUND
       }
 
       "return 400 for malformed request" in new TestScope {
@@ -124,10 +124,7 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
         image.insertChunk(chunk0)
         image.insertChunk(chunk1)
 
-        val result = route(
-          app,
-          FakeRequest(GET, s"/image/${image.sha256}")
-        ).getOrElse(Future.failed(new Exception("failed to call test route")))
+        val result = downloadImage(image)
 
         status(result) mustBe OK
 
@@ -136,7 +133,7 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
       }
 
       "return 404 if image does not exist" in new TestScope {
-        pending
+        status(downloadImage(image)) mustBe NOT_FOUND
       }
 
       "not throw an error when downloading empty image" in new TestScope {
@@ -144,6 +141,13 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
       }
     }
 
+  }
+
+  private def downloadImage(image: Image) = {
+    route(
+      app,
+      FakeRequest(GET, s"/image/${image.sha256}")
+    ).getOrElse(Future.failed(new Exception("failed to call test route")))
   }
 
   private def registerImage(imageJson: JsValue) = {

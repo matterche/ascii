@@ -1,6 +1,6 @@
 package ascii
 
-import common.ConflictError
+import common.{ConflictError, EntityNotFoundError}
 import javax.inject._
 import play.api._
 import play.api.mvc._
@@ -19,7 +19,7 @@ class AsciiController @Inject()(cc: ControllerComponents, asciiService: AsciiSer
       asciiService.createImage(imageDto) match {
         case Right(_)                   => Created("")
         case Left(error: ConflictError) => Conflict(error.message)
-        case Left(_)                    => InternalServerError("An unexpected error occurred while creating an image")
+        case Left(error)                => InternalServerError(s"An unexpected error occurred while creating an image: ${error.message}")
       }
     }
 
@@ -33,9 +33,10 @@ class AsciiController @Inject()(cc: ControllerComponents, asciiService: AsciiSer
 
     Future.successful {
       asciiService.uploadChunk(sha256, chunkDto) match {
-        case Right(_) => Created("")
-        case Left(error: ConflictError) => Conflict(error.message)
-        case Left(_)  => InternalServerError("An unexpected error occurred while creating a chunk")
+        case Right(_)                         => Created("")
+        case Left(error: ConflictError)       => Conflict(error.message)
+        case Left(error: EntityNotFoundError) => NotFound(error.message)
+        case Left(error)                      => InternalServerError(s"An unexpected error occurred while creating a chunk: ${error.message}")
       }
     }
   }
@@ -43,8 +44,9 @@ class AsciiController @Inject()(cc: ControllerComponents, asciiService: AsciiSer
   def downloadImage(sha256: String): Action[AnyContent] = Action.async { _ =>
     Future.successful {
       asciiService.downloadImage(sha256) match {
-        case Right(rawImage) => Ok(rawImage)
-        case Left(_)         => InternalServerError("An unexpected error occurred while creating a chunk")
+        case Right(rawImage)                  => Ok(rawImage)
+        case Left(error: EntityNotFoundError) => NotFound(error.message)
+        case Left(error)                      => InternalServerError(s"An unexpected error occurred while downloading an image: ${error.message}")
       }
 
     }
