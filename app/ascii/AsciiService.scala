@@ -6,7 +6,7 @@ import javax.inject.{Inject, Singleton}
 @Singleton
 class AsciiService @Inject()(imageRepository: ImageRepository) {
 
-  def createImage(imageDto: ImageDTO): Either[ServiceError, Unit] = {
+  def registerImage(imageDto: ImageDTO): Either[ServiceError, Unit] = {
     imageRepository.findImage(imageDto.sha256) match {
       case Some(image) => Left(ConflictError(s"Image ${image.sha256} already exists"))
       case None =>
@@ -35,7 +35,7 @@ class AsciiService @Inject()(imageRepository: ImageRepository) {
   def downloadImage(sha256: String): Either[ServiceError, String] = {
     imageRepository
       .findImage(sha256)
-      .map(image => Right(image.assemble))
+      .map(image => Right(image.download))
       .getOrElse(Left(EntityNotFoundError(s"Could not find image $sha256")))
   }
 }

@@ -14,7 +14,7 @@ case class Image(sha256: String, size: Int, chunkSize: Int) {
 
   def findChunk(id: Int): Option[Chunk] = chunksInternal.find(chunk => chunk.id == id)
 
-  def assemble: String = chunksInternal.map(chunk => chunk.data).mkString("")
+  def download: String = chunksInternal.map(chunk => chunk.data).mkString("")
 
   def chunks: List[Chunk] = chunksInternal.toList
 }
