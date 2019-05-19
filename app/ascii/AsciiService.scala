@@ -35,7 +35,7 @@ class AsciiService @Inject()(imageRepository: ImageRepository) {
   def downloadImage(sha256: String): Either[ServiceError, String] = {
     imageRepository
       .findImage(sha256)
-      .map(image => Right(image.chunks.map(chunk => chunk.data).mkString("")))
+      .map(image => Right(image.assemble))
       .getOrElse(Left(EntityNotFoundError(s"Could not find image $sha256")))
   }
 }

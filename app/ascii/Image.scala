@@ -4,16 +4,20 @@ import scala.collection.mutable.ArrayBuffer
 
 case class Image(sha256: String, size: Int, chunkSize: Int) {
 
-  var chunks: ArrayBuffer[Chunk] = ArrayBuffer()
+  private var chunksInternal: ArrayBuffer[Chunk] = ArrayBuffer()
 
   // TODO: choose more idomatic approach by introducing immutability?
   def insertChunk(chunk: Chunk): Image = {
-    chunks += chunk
-    chunks = chunks.sortBy(chunk => chunk.id)
+    chunksInternal += chunk
+    chunksInternal = chunksInternal.sortBy(chunk => chunk.id)
     this
   }
 
-  def findChunk(id: Int): Option[Chunk] = chunks.find(chunk => chunk.id == id)
+  def findChunk(id: Int): Option[Chunk] = chunksInternal.find(chunk => chunk.id == id)
+
+  def assemble: String = chunksInternal.map(chunk => chunk.data).mkString("")
+
+  def chunks: List[Chunk] = chunksInternal.result().toList
 }
 
 object Image {

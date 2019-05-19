@@ -138,6 +138,10 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
       "return 404 if image does not exist" in new TestScope {
         pending
       }
+
+      "not throw an error when downloading empty image" in new TestScope {
+        pending
+      }
     }
 
   }
