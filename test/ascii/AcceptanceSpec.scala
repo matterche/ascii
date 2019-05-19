@@ -3,7 +3,7 @@ package ascii
 import akka.stream.Materializer
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers._
 import play.api.test._
 
@@ -14,7 +14,7 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
 
   class TestScope() extends TestData {
     val imageRepository = inject[ImageRepository]
-    imageRepository.deleteAll()
+    imageRepository.deleteAll() // TODO: is this necessary?
 
     val imageJson = Json.parse(imageRaw)
     val imageDto  = imageJson.as[ImageDTO]
@@ -24,6 +24,9 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
     val chunk0Dto  = chunk0Json.as[ChunkDTO]
     val chunk0     = Chunk.from(chunk0Dto)
 
+    val chunk1Json = Json.parse(chunk1Raw)
+    val chunk1Dto  = chunk1Json.as[ChunkDTO]
+    val chunk1     = Chunk.from(chunk1Dto)
   }
 
   "AsciiController GET" should {
@@ -47,14 +50,29 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
     "upload a new image chunk" in new TestScope {
       imageRepository.createImage(image)
 
-      val result = route(
-        app,
-        FakeRequest(POST, s"/image/${image.sha256}/chunks").withBody(chunk0Json)
-      ).getOrElse(Future.failed(new Exception("failed to call test route")))
+      val result = uploadChunk(image, chunk0Json)
 
       status(result) mustBe CREATED
 
       image.chunks(chunk0.id) mustBe chunk0
+    }
+
+    "upload several chunks for the same image in order" in new TestScope {
+      imageRepository.createImage(image)
+
+      status(uploadChunk(image, chunk0Json)) mustBe CREATED
+      status(uploadChunk(image, chunk1Json)) mustBe CREATED
+
+      image.chunks mustBe Seq(chunk0, chunk1)
+    }
+
+    "upload several chunks for the same image out of order" in new TestScope {
+      imageRepository.createImage(image)
+
+      status(uploadChunk(image, chunk1Json)) mustBe CREATED
+      status(uploadChunk(image, chunk0Json)) mustBe CREATED
+
+      image.chunks mustBe Seq(chunk0, chunk1)
     }
 
     "download an image" in {
@@ -62,5 +80,14 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
       // contentType(home) mustBe Some(...)
 //      contentAsString(result) must include("")
     }
+
+    // empty body
+  }
+
+  private def uploadChunk(image: Image, chunkPayload: JsValue) = {
+    route(
+      app,
+      FakeRequest(POST, s"/image/${image.sha256}/chunks").withBody(chunkPayload)
+    ).getOrElse(Future.failed(new Exception("failed to call test route")))
   }
 }

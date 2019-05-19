@@ -17,11 +17,10 @@ class AsciiService @Inject()(imageRepository: ImageRepository) {
     imageRepository
       .findImage(sha256)
       .map { image =>
-        image.chunks.insert(chunk.id, chunk)
-        imageRepository.updateImage(image)
+        val updatedImage = image.insertChunk(chunk)
+        imageRepository.updateImage(updatedImage)
         Right(())
       }
       .getOrElse(Left(EntityNotFoundError(s"Could not find image $sha256")))
-
   }
 }
