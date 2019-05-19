@@ -75,10 +75,20 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
       image.chunks mustBe Seq(chunk0, chunk1)
     }
 
-    "download an image" in {
-      pending
-      // contentType(home) mustBe Some(...)
-//      contentAsString(result) must include("")
+    "download an image" in new TestScope {
+      imageRepository.createImage(image)
+      image.insertChunk(chunk0)
+      image.insertChunk(chunk1)
+
+      val result = route(
+        app,
+        FakeRequest(GET, s"/image/${image.sha256}")
+      ).getOrElse(Future.failed(new Exception("failed to call test route")))
+
+      status(result) mustBe OK
+
+      contentType(result) mustBe Some(TEXT)
+      contentAsString(result) mustBe chunk0.data + chunk1.data
     }
 
     // empty body

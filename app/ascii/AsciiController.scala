@@ -39,7 +39,11 @@ class AsciiController @Inject()(cc: ControllerComponents, asciiService: AsciiSer
 
   def downloadImage(sha256: String) = Action.async { request =>
     Future.successful {
-      Ok("")
+      asciiService.downloadImage(sha256) match {
+        case Right(rawImage) => Ok(rawImage)
+        case Left(_)         => InternalServerError("An unexpected error occurred while creating a chunk")
+      }
+
     }
   }
 }
