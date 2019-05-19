@@ -17,7 +17,7 @@ case class Image(sha256: String, size: Int, chunkSize: Int) {
 
   def assemble: String = chunksInternal.map(chunk => chunk.data).mkString("")
 
-  def chunks: List[Chunk] = chunksInternal.result().toList
+  def chunks: List[Chunk] = chunksInternal.toList
 }
 
 object Image {
