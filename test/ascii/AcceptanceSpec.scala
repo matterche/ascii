@@ -1,9 +1,11 @@
 package ascii
 
 import akka.stream.Materializer
+import common.ProblemDTO
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
 import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test._
 
@@ -42,12 +44,20 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
 
       "return 409 if image already exists" in new TestScope {
         imageRepository.createImage(image)
-        status(registerImage(imageJson)) mustBe CONFLICT
+
+        val result = registerImage(imageJson)
+
+        status(result) mustBe CONFLICT
+        contentAsJson(result).asOpt[ProblemDTO] mustBe defined
       }
 
       "return 400 for malformed request" in new TestScope {
         val malformedPayload = Json.parse("""{"not":"valid"}""")
-        status(registerImage(malformedPayload)) mustBe BAD_REQUEST
+
+        val result = registerImage(malformedPayload)
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result).asOpt[ProblemDTO] mustBe defined
       }
 
       "return 415 for unsupported payload format" in new TestScope {
@@ -57,6 +67,7 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
         ).getOrElse(Future.failed(new Exception("failed to call test route")))
 
         status(result) mustBe UNSUPPORTED_MEDIA_TYPE
+        contentAsJson(result).asOpt[ProblemDTO] mustBe defined
       }
     }
 
@@ -94,16 +105,25 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
         imageRepository.createImage(image)
         image.insertChunk(chunk0)
 
-        status(uploadChunk(image, chunk0Json)) mustBe CONFLICT
+        val result = uploadChunk(image, chunk0Json)
+
+        status(result) mustBe CONFLICT
+        contentAsJson(result).asOpt[ProblemDTO] mustBe defined
       }
 
       "return 404 if image does not exist" in new TestScope {
-        status(uploadChunk(image, chunk0Json)) mustBe NOT_FOUND
+        val result: Future[Result] = uploadChunk(image, chunk0Json)
+
+        status(result) mustBe NOT_FOUND
+        contentAsJson(result).asOpt[ProblemDTO] mustBe defined
       }
 
       "return 400 for malformed request" in new TestScope {
-        val malformedPayload = Json.parse("""{"not":"valid"}""")
-        status(uploadChunk(image, malformedPayload)) mustBe BAD_REQUEST
+        val malformedPayload       = Json.parse("""{"not":"valid"}""")
+        val result: Future[Result] = uploadChunk(image, malformedPayload)
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result).asOpt[ProblemDTO] mustBe defined
       }
 
       "return 415 for unsupported payload format" in new TestScope {
@@ -113,6 +133,7 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
         ).getOrElse(Future.failed(new Exception("failed to call test route")))
 
         status(result) mustBe UNSUPPORTED_MEDIA_TYPE
+        contentAsJson(result).asOpt[ProblemDTO] mustBe defined
       }
 
     }
@@ -132,7 +153,10 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
       }
 
       "return 404 if image does not exist" in new TestScope {
-        status(downloadImage(image)) mustBe NOT_FOUND
+        val result: Future[Result] = downloadImage(image)
+
+        status(result) mustBe NOT_FOUND
+        contentAsJson(result).asOpt[ProblemDTO] mustBe defined
       }
 
       "not throw an error when downloading an empty image" in new TestScope {
