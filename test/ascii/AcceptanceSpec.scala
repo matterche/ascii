@@ -32,19 +32,16 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
   "AsciiController GET" should {
 
     "register a new image" in new TestScope {
-      val result = route(
-        app,
-        FakeRequest(POST, "/image").withBody(imageJson)
-      ).getOrElse(Future.failed(new Exception("failed to call test route")))
+      val result = registerImage(imageJson)
 
       status(result) mustBe CREATED
 
       imageRepository.exists(imageDto.sha256) mustBe true
     }
 
-    "return 409 if image already exists" in {
-      pending
-//      status(result) mustBe CONFLICT
+    "return 409 if image already exists" in new TestScope {
+      imageRepository.createImage(image)
+      status(registerImage(imageJson)) mustBe CONFLICT
     }
 
     "upload a new image chunk" in new TestScope {
@@ -92,6 +89,13 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
     }
 
     // empty body
+  }
+
+  private def registerImage(imageJson: JsValue) = {
+    route(
+      app,
+      FakeRequest(POST, "/image").withBody(imageJson)
+    ).getOrElse(Future.failed(new Exception("failed to call test route")))
   }
 
   private def uploadChunk(image: Image, chunkPayload: JsValue) = {

@@ -1,5 +1,6 @@
 package ascii
 
+import common.ConflictError
 import javax.inject._
 import play.api._
 import play.api.mvc._
@@ -16,14 +17,15 @@ class AsciiController @Inject()(cc: ControllerComponents, asciiService: AsciiSer
 
     Future.successful {
       asciiService.createImage(imageDto) match {
-        case Right(_) => Created("")
-        case Left(_)  => InternalServerError("An unexpected error occurred while creating an image")
+        case Right(_)                   => Created("")
+        case Left(error: ConflictError) => Conflict(error.message)
+        case Left(_)                    => InternalServerError("An unexpected error occurred while creating an image")
       }
     }
 
   }
 
-  def uploadChunk(sha256: String) = Action.async(parse.json[ChunkDTO]) { request =>
+  def uploadChunk(sha256: String): Action[ChunkDTO] = Action.async(parse.json[ChunkDTO]) { request =>
     val chunkDto = request.body
 
     // TODO: validate chunk size
@@ -37,7 +39,7 @@ class AsciiController @Inject()(cc: ControllerComponents, asciiService: AsciiSer
     }
   }
 
-  def downloadImage(sha256: String) = Action.async { request =>
+  def downloadImage(sha256: String): Action[AnyContent] = Action.async { _ =>
     Future.successful {
       asciiService.downloadImage(sha256) match {
         case Right(rawImage) => Ok(rawImage)
