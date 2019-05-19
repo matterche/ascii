@@ -14,7 +14,6 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
 
   class TestScope() extends TestData {
     val imageRepository = inject[ImageRepository]
-    imageRepository.deleteAll() // TODO: is this necessary?
 
     val imageJson = Json.parse(imageRaw)
     val imageDto  = imageJson.as[ImageDTO]
