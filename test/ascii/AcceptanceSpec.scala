@@ -136,8 +136,16 @@ class AcceptanceSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
         status(downloadImage(image)) mustBe NOT_FOUND
       }
 
-      "not throw an error when downloading empty image" in new TestScope {
-        pending
+      "not throw an error when downloading an empty image" in new TestScope {
+        imageRepository.createImage(image)
+
+        val result = downloadImage(image)
+
+        status(result) mustBe OK
+
+        contentType(result) mustBe Some(TEXT)
+        contentAsString(result) mustBe ""
+
       }
     }
 
