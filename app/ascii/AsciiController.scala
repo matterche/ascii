@@ -23,9 +23,6 @@ class AsciiController @Inject()(cc: ControllerComponents, asciiService: AsciiSer
   def uploadChunk(sha256: String): Action[ChunkDTO] = Action.async(parse.json[ChunkDTO]) { request =>
     val chunkDto = request.body
 
-    // TODO: validate chunk size
-    // TODO: validate if image size too big
-
     Future.successful {
       asciiService.uploadChunk(sha256, chunkDto) match {
         case Right(_)                  => Created("")

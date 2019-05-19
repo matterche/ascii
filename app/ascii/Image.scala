@@ -6,7 +6,6 @@ case class Image(sha256: String, size: Int, chunkSize: Int) {
 
   private var chunksInternal: ArrayBuffer[Chunk] = new ArrayBuffer((size / chunkSize) + 1)
 
-  // TODO: choose more idiomatic approach by introducing immutability?
   def insertChunk(chunk: Chunk): Image = {
     chunksInternal += chunk
     chunksInternal = chunksInternal.sortBy(chunk => chunk.id)
